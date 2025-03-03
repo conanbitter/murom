@@ -28,7 +28,7 @@ Color screenBuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
 
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     window = SDL_CreateWindow(
         "Murom",
         SDL_WINDOWPOS_CENTERED,
