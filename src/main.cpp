@@ -6,7 +6,7 @@ using std::cout;
 using std::endl;
 
 const int SCREEN_WIDTH = 320;   // 640
-const int SCREEN_HEIGHT = 180;  // 480
+const int SCREEN_HEIGHT = 180;  // 360
 const int SCREEN_SCALE = 4;
 
 SDL_Window *window;
