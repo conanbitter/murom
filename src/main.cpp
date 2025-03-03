@@ -1,5 +1,9 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+#include <iostream>
+
+using std::cout;
+using std::endl;
 
 const int SCREEN_WIDTH = 320;   // 640
 const int SCREEN_HEIGHT = 180;  // 480
@@ -21,7 +25,21 @@ int main(int argc, char *argv[]) {
         SCREEN_HEIGHT * SCREEN_SCALE,
         SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+    screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    SDL_RendererInfo info;
+    SDL_GetRendererInfo(renderer, &info);
+    cout << "Renderer name: " << info.name << endl;
+    cout << "Texture formats: " << endl;
+    for (Uint32 i = 0; i < info.num_texture_formats; i++) {
+        cout << SDL_GetPixelFormatName(info.texture_formats[i]) << endl;
+    }
+    Uint32 format;
+    SDL_QueryTexture(screen, &format, NULL, NULL, NULL);
+    cout << "Screen texture format: " << SDL_GetPixelFormatName(format) << endl;
+    if (format != SDL_PIXELFORMAT_ARGB8888) {
+        cout << "Error in texture format" << endl;
+    }
 
     SDL_Event event;
     bool working = true;
