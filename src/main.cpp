@@ -14,6 +14,18 @@ SDL_Renderer *renderer;
 SDL_Texture *screen;
 SDL_Rect screen_rect = {0, 0, SCREEN_WIDTH *SCREEN_SCALE, SCREEN_HEIGHT *SCREEN_SCALE};
 
+struct alignas(uint32_t) Color {
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+    uint8_t a;
+
+    Color() : r{0}, g{0}, b{0}, a{255} {}
+    Color(uint8_t r, uint8_t g, uint8_t b) : r{r}, g{g}, b{b}, a{255} {}
+};
+
+Color screenBuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
@@ -44,6 +56,15 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
     bool working = true;
 
+    Color bgColor = Color(92, 131, 181);
+    for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
+        for (size_t x = 0; x < SCREEN_WIDTH; x++) {
+            screenBuffer[y][x] = bgColor;
+        }
+    }
+
+    screenBuffer[20][20] = Color(255, 0, 0);
+
     while (working) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
@@ -53,6 +74,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        SDL_UpdateTexture(screen, NULL, screenBuffer, SCREEN_WIDTH * sizeof(Color));
         SDL_RenderCopy(renderer, screen, NULL, &screen_rect);
         SDL_RenderPresent(renderer);
 
