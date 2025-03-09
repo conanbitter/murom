@@ -26,6 +26,89 @@ struct alignas(uint32_t) Color {
 
 Color screenBuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
 
+void putPixel(int x, int y, Color color) {
+    screenBuffer[y][x] = color;
+}
+
+struct ScreenPoint {
+    int x;
+    int y;
+
+    ScreenPoint(int x, int y) : x{x}, y{y} {}
+};
+
+class ITriEdge {
+   public:
+    virtual int next() { return 0; }
+};
+
+class TriEdgeLinear : public ITriEdge {
+   public:
+    TriEdgeLinear(int x) : x{x} {}
+    int next() override {
+        return x;
+    }
+
+   private:
+    int x;
+};
+
+class TriEdgeGentle : public ITriEdge {
+   public:
+    TriEdgeGentle(int x1, int x2, int dx, int dy) : x{x1}, x2{x2}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dy - dx} {}
+    int next() override {
+        while (d <= 0 && x < x2) {
+            d += dy2;
+            x++;
+        }
+        d -= dx2;
+        return x;
+    }
+
+   private:
+    int d;
+    int dx2;
+    int dy2;
+    int x;
+    int x2;
+};
+
+class TriEdgeSteep : public ITriEdge {
+   public:
+    TriEdgeSteep(int x, int dx, int dy) : x{x}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dy - dx} {}
+    int next() override {
+        int res = x;
+        if (d > 0) {
+            x++;
+            d -= dy2;
+        }
+        d += dx2;
+        return res;
+    }
+
+   private:
+    int d;
+    int dx2;
+    int dy2;
+    int x;
+};
+
+typedef std::unique_ptr<ITriEdge> TriEdge;
+
+TriEdge getEdge(ScreenPoint a, ScreenPoint b) {
+    int dx = b.x - a.x;
+    int dy = b.y - a.y;
+
+    if (dx == 0 || dy == 0) {
+        return std::make_unique<TriEdgeLinear>(b.x);
+    }
+    if (dx > dy) {
+        return std::make_unique<TriEdgeGentle>(a.x, b.x, dx, dy);
+    } else {
+        return std::make_unique<TriEdgeSteep>(a.x, dx, dy);
+    }
+}
+
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -63,7 +146,17 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    screenBuffer[20][20] = Color(255, 0, 0);
+    // putPixel(10, 20, Color(255, 0, 0));
+
+    ScreenPoint a(10, 10);
+    ScreenPoint b(20, 55);
+
+    TriEdge ab = getEdge(a, b);
+    for (int y = a.y; y <= b.y; y++) {
+        putPixel(ab->next(), y, Color(255, 0, 0));
+    }
+    putPixel(a.x, a.y, Color(100, 50, 50));
+    putPixel(b.x, b.y, Color(100, 50, 50));
 
     while (working) {
         while (SDL_PollEvent(&event)) {
