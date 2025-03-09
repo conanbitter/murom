@@ -75,7 +75,7 @@ class TriEdgeGentle : public ITriEdge {
 
 class TriEdgeSteep : public ITriEdge {
    public:
-    TriEdgeSteep(int x, int dx, int dy) : x{x}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dy - dx} {}
+    TriEdgeSteep(int x, int dx, int dy) : x{x}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dx - dy} {}
     int next() override {
         int res = x;
         if (d > 0) {
@@ -149,11 +149,11 @@ int main(int argc, char *argv[]) {
     // putPixel(10, 20, Color(255, 0, 0));
 
     ScreenPoint a(10, 10);
-    ScreenPoint b(20, 55);
+    ScreenPoint b(72, 30);
 
     TriEdge ab = getEdge(a, b);
     for (int y = a.y; y <= b.y; y++) {
-        putPixel(ab->next(), y, Color(255, 0, 0));
+        putPixel(ab->next(), y, Color(100, 200, 100));
     }
     putPixel(a.x, a.y, Color(100, 50, 50));
     putPixel(b.x, b.y, Color(100, 50, 50));
