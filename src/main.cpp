@@ -34,6 +34,7 @@ struct ScreenPoint {
     int x;
     int y;
 
+    ScreenPoint() : x{0}, y{0} {}
     ScreenPoint(int x, int y) : x{x}, y{y} {}
 };
 
@@ -42,9 +43,9 @@ class ITriEdge {
     virtual int next() { return 0; }
 };
 
-class TriEdgeLinear : public ITriEdge {
+class TriEdgeLine : public ITriEdge {
    public:
-    TriEdgeLinear(int x) : x{x} {}
+    TriEdgeLine(int x) : x{x} {}
     int next() override {
         return x;
     }
@@ -55,11 +56,12 @@ class TriEdgeLinear : public ITriEdge {
 
 class TriEdgeGentle : public ITriEdge {
    public:
-    TriEdgeGentle(int x1, int x2, int dx, int dy) : x{x1}, x2{x2}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dy - dx} {}
+    TriEdgeGentle(int x1, int x2, int dx, int dy, int sign) : x{x1}, x2{x2}, sign{sign}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dy - dx} {}
     int next() override {
-        while (d <= 0 && x < x2) {
+        while (d <= 0) {
+            if (x == x2) break;
             d += dy2;
-            x++;
+            x += sign;
         }
         d -= dx2;
         return x;
@@ -71,15 +73,16 @@ class TriEdgeGentle : public ITriEdge {
     int dy2;
     int x;
     int x2;
+    int sign;
 };
 
 class TriEdgeSteep : public ITriEdge {
    public:
-    TriEdgeSteep(int x, int dx, int dy) : x{x}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dx - dy} {}
+    TriEdgeSteep(int x, int dx, int dy, int sign) : x{x}, sign{sign}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dx - dy} {}
     int next() override {
         int res = x;
         if (d > 0) {
-            x++;
+            x += sign;
             d -= dy2;
         }
         d += dx2;
@@ -91,6 +94,7 @@ class TriEdgeSteep : public ITriEdge {
     int dx2;
     int dy2;
     int x;
+    int sign;
 };
 
 typedef std::unique_ptr<ITriEdge> TriEdge;
@@ -100,13 +104,29 @@ TriEdge getEdge(ScreenPoint a, ScreenPoint b) {
     int dy = b.y - a.y;
 
     if (dx == 0 || dy == 0) {
-        return std::make_unique<TriEdgeLinear>(b.x);
+        return std::make_unique<TriEdgeLine>(b.x);
+    }
+    int sign = 1;
+    if (dx < 0) {
+        sign = -1;
+        dx = -dx;
     }
     if (dx > dy) {
-        return std::make_unique<TriEdgeGentle>(a.x, b.x, dx, dy);
+        return std::make_unique<TriEdgeGentle>(a.x, b.x, dx, dy, sign);
     } else {
-        return std::make_unique<TriEdgeSteep>(a.x, dx, dy);
+        return std::make_unique<TriEdgeSteep>(a.x, dx, dy, sign);
     }
+}
+
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+void sortPointsByY(ScreenPoint &a, ScreenPoint &b, ScreenPoint &c) {
 }
 
 int main(int argc, char *argv[]) {
@@ -148,8 +168,8 @@ int main(int argc, char *argv[]) {
 
     // putPixel(10, 20, Color(255, 0, 0));
 
-    ScreenPoint a(10, 10);
-    ScreenPoint b(72, 30);
+    ScreenPoint a(30, 10);
+    ScreenPoint b(10, 72);
 
     TriEdge ab = getEdge(a, b);
     for (int y = a.y; y <= b.y; y++) {
