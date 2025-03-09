@@ -127,6 +127,15 @@ int min(int a, int b) {
 }
 
 void sortPointsByY(ScreenPoint &a, ScreenPoint &b, ScreenPoint &c) {
+    if (b.y < a.y) std::swap(a, b);
+    if (c.y < a.y) std::swap(a, c);
+    if (c.y < b.y) std::swap(b, c);
+}
+
+void drawScanLine(int left, int right, int y) {
+    for (int x = left; x <= right; x++) {
+        putPixel(x, y, Color(100, 200, 100));
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -169,14 +178,29 @@ int main(int argc, char *argv[]) {
     // putPixel(10, 20, Color(255, 0, 0));
 
     ScreenPoint a(30, 10);
-    ScreenPoint b(10, 72);
+    ScreenPoint b(67, 22);
+    ScreenPoint c(13, 57);
+
+    sortPointsByY(a, b, c);
 
     TriEdge ab = getEdge(a, b);
-    for (int y = a.y; y <= b.y; y++) {
-        putPixel(ab->next(), y, Color(100, 200, 100));
+    TriEdge ac = getEdge(a, c);
+    TriEdge bc = getEdge(b, c);
+
+    for (int y = a.y; y <= c.y; y++) {
+        if (y < 0) continue;
+        if (y >= SCREEN_HEIGHT) break;
+        int e1 = y < b.y ? ab->next() : bc->next();
+        int e2 = ac->next();
+        int left = max(0, min(e1, e2));
+        int right = min(SCREEN_WIDTH, max(e1, e2));
+        drawScanLine(left, right, y);
+        // putPixel(left, y, Color(100, 200, 100));
+        // putPixel(right, y, Color(100, 200, 100));
     }
     putPixel(a.x, a.y, Color(100, 50, 50));
     putPixel(b.x, b.y, Color(100, 50, 50));
+    putPixel(c.x, c.y, Color(100, 50, 50));
 
     while (working) {
         while (SDL_PollEvent(&event)) {
