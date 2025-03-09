@@ -138,6 +138,37 @@ void drawScanLine(int left, int right, int y) {
     }
 }
 
+void drawTriangle(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
+    sortPointsByY(a, b, c);
+
+    TriEdge ab = getEdge(a, b);
+    TriEdge ac = getEdge(a, c);
+    TriEdge bc = getEdge(b, c);
+
+    for (int y = a.y; y <= c.y; y++) {
+        if (y < 0) continue;
+        if (y >= SCREEN_HEIGHT) break;
+        int e1 = y < b.y ? ab->next() : bc->next();
+        int e2 = ac->next();
+        int left = max(0, min(e1, e2));
+        int right = min(SCREEN_WIDTH, max(e1, e2));
+        drawScanLine(left, right, y);
+    }
+    putPixel(a.x, a.y, Color(100, 50, 50));
+    putPixel(b.x, b.y, Color(100, 50, 50));
+    putPixel(c.x, c.y, Color(100, 50, 50));
+}
+
+Color bgColor = Color(92, 131, 181);
+
+void clearScreen() {
+    for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
+        for (size_t x = 0; x < SCREEN_WIDTH; x++) {
+            screenBuffer[y][x] = bgColor;
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -168,39 +199,11 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
     bool working = true;
 
-    Color bgColor = Color(92, 131, 181);
-    for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
-        for (size_t x = 0; x < SCREEN_WIDTH; x++) {
-            screenBuffer[y][x] = bgColor;
-        }
-    }
-
-    // putPixel(10, 20, Color(255, 0, 0));
-
     ScreenPoint a(30, 10);
     ScreenPoint b(67, 22);
     ScreenPoint c(13, 57);
 
-    sortPointsByY(a, b, c);
-
-    TriEdge ab = getEdge(a, b);
-    TriEdge ac = getEdge(a, c);
-    TriEdge bc = getEdge(b, c);
-
-    for (int y = a.y; y <= c.y; y++) {
-        if (y < 0) continue;
-        if (y >= SCREEN_HEIGHT) break;
-        int e1 = y < b.y ? ab->next() : bc->next();
-        int e2 = ac->next();
-        int left = max(0, min(e1, e2));
-        int right = min(SCREEN_WIDTH, max(e1, e2));
-        drawScanLine(left, right, y);
-        // putPixel(left, y, Color(100, 200, 100));
-        // putPixel(right, y, Color(100, 200, 100));
-    }
-    putPixel(a.x, a.y, Color(100, 50, 50));
-    putPixel(b.x, b.y, Color(100, 50, 50));
-    putPixel(c.x, c.y, Color(100, 50, 50));
+    double angle = 0.0;
 
     while (working) {
         while (SDL_PollEvent(&event)) {
@@ -210,6 +213,17 @@ int main(int argc, char *argv[]) {
                     break;
             }
         }
+
+        angle += 0.002;
+
+        a.x = 160 + cos(angle) * 100;
+        a.y = 90 + sin(angle) * 50;
+        b.x = 160 + cos(angle + 3.0) * 100;
+        b.y = 90 + sin(angle + 3.0) * 50;
+        c.x = 160 + cos(angle + 1.2) * 100;
+        c.y = 90 + sin(angle + 1.2) * 50;
+        clearScreen();
+        drawTriangle(a, b, c);
 
         SDL_UpdateTexture(screen, NULL, screenBuffer, SCREEN_WIDTH * sizeof(Color));
         SDL_RenderCopy(renderer, screen, NULL, &screen_rect);
