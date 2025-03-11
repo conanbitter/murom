@@ -1,13 +1,14 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <iostream>
+#include <algorithm>
 
 using std::cout;
 using std::endl;
 
 const int SCREEN_WIDTH = 320;   // 640
 const int SCREEN_HEIGHT = 180;  // 360
-const int SCREEN_SCALE = 4;
+const int SCREEN_SCALE = 1;
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -56,15 +57,15 @@ class TriEdgeLine : public ITriEdge {
 
 class TriEdgeGentle : public ITriEdge {
    public:
-    TriEdgeGentle(int x1, int x2, int dx, int dy, int sign) : x{x1}, x2{x2}, sign{sign}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dy - dx} {}
+    TriEdgeGentle(int x1, int x2, int dx, int dy, int sign) : x{x1}, x2{x2}, sign{sign}, dx2{2 * dx}, dy2{2 * dy}, d{2 * dx - dy} {}
     int next() override {
-        while (d <= 0) {
-            if (x == x2) break;
-            d += dy2;
+        int res = x;
+        while (d > 0) {
             x += sign;
+            d -= dy2;
         }
-        d -= dx2;
-        return x;
+        d += dx2;
+        return res;
     }
 
    private:
@@ -159,6 +160,26 @@ void drawTriangle(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
     putPixel(c.x, c.y, Color(100, 50, 50));
 }
 
+void drawTriangle2(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
+    int xmin = std::max(std::min({a.x, b.x, c.x}), 0);
+    int xmax = std::min(std::max({a.x, b.x, c.x}), SCREEN_WIDTH - 1);
+    int ymin = std::max(std::min({a.y, b.y, c.y}), 0);
+    int ymax = std::min(std::max({a.y, b.y, c.y}), SCREEN_HEIGHT - 1);
+
+    for (int y = ymin; y <= ymax; y++) {
+        for (int x = xmin; x <= xmax; x++) {
+            if ((a.x - b.x) * (y - a.y) - (a.y - b.y) * (x - a.x) > 0 &&
+                (b.x - c.x) * (y - b.y) - (b.y - c.y) * (x - b.x) > 0 &&
+                (c.x - a.x) * (y - c.y) - (c.y - a.y) * (x - c.x) > 0) {
+                putPixel(x, y, Color(100, 200, 100));
+            }
+        }
+    }
+    putPixel(a.x, a.y, Color(100, 50, 50));
+    putPixel(b.x, b.y, Color(100, 50, 50));
+    putPixel(c.x, c.y, Color(100, 50, 50));
+}
+
 Color bgColor = Color(92, 131, 181);
 
 void clearScreen() {
@@ -223,7 +244,7 @@ int main(int argc, char *argv[]) {
         c.x = 160 + cos(angle + 1.2) * 100;
         c.y = 90 + sin(angle + 1.2) * 50;
         clearScreen();
-        drawTriangle(a, b, c);
+        drawTriangle2(a, b, c);
 
         SDL_UpdateTexture(screen, NULL, screenBuffer, SCREEN_WIDTH * sizeof(Color));
         SDL_RenderCopy(renderer, screen, NULL, &screen_rect);
