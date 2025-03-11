@@ -8,7 +8,7 @@ using std::endl;
 
 const int SCREEN_WIDTH = 320;   // 640
 const int SCREEN_HEIGHT = 180;  // 360
-const int SCREEN_SCALE = 1;
+const int SCREEN_SCALE = 4;
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -160,7 +160,7 @@ void drawTriangle(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
     putPixel(c.x, c.y, Color(100, 50, 50));
 }
 
-void drawTriangle2(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
+void drawTriangle2(ScreenPoint a, ScreenPoint b, ScreenPoint c, Color color) {
     int xmin = std::max(std::min({a.x, b.x, c.x}), 0);
     int xmax = std::min(std::max({a.x, b.x, c.x}), SCREEN_WIDTH - 1);
     int ymin = std::max(std::min({a.y, b.y, c.y}), 0);
@@ -168,10 +168,14 @@ void drawTriangle2(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
 
     for (int y = ymin; y <= ymax; y++) {
         for (int x = xmin; x <= xmax; x++) {
-            if ((a.x - b.x) * (y - a.y) - (a.y - b.y) * (x - a.x) > 0 &&
-                (b.x - c.x) * (y - b.y) - (b.y - c.y) * (x - b.x) > 0 &&
-                (c.x - a.x) * (y - c.y) - (c.y - a.y) * (x - c.x) > 0) {
-                putPixel(x, y, Color(100, 200, 100));
+            if ((a.x - b.x) * (y - a.y) - (a.y - b.y) * (x - a.x) >= 0 &&
+                (b.x - c.x) * (y - b.y) - (b.y - c.y) * (x - b.x) >= 0 &&
+                (c.x - a.x) * (y - c.y) - (c.y - a.y) * (x - c.x) >= 0) {
+                if (screenBuffer[y][x].b != 100) {
+                    putPixel(x, y, color);
+                } else {
+                    putPixel(x, y, Color(200, 50, 50));
+                }
             }
         }
     }
@@ -223,6 +227,7 @@ int main(int argc, char *argv[]) {
     ScreenPoint a(30, 10);
     ScreenPoint b(67, 22);
     ScreenPoint c(13, 57);
+    ScreenPoint d(13, 57);
 
     double angle = 0.0;
 
@@ -243,8 +248,11 @@ int main(int argc, char *argv[]) {
         b.y = 90 + sin(angle + 3.0) * 50;
         c.x = 160 + cos(angle + 1.2) * 100;
         c.y = 90 + sin(angle + 1.2) * 50;
+        d.x = 160 + cos(angle + 4) * 100;
+        d.y = 90 + sin(angle + 4) * 50;
         clearScreen();
-        drawTriangle2(a, b, c);
+        drawTriangle2(a, b, c, Color(100, 200, 100));
+        drawTriangle2(d, b, a, Color(200, 200, 100));
 
         SDL_UpdateTexture(screen, NULL, screenBuffer, SCREEN_WIDTH * sizeof(Color));
         SDL_RenderCopy(renderer, screen, NULL, &screen_rect);
