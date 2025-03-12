@@ -14,6 +14,8 @@ list(TRANSFORM SRC_FILES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 add_executable(murom ${SRC_FILES})
 
+set_property(TARGET murom PROPERTY CXX_STANDARD 17)
+
 find_package(SDL2 REQUIRED)
 
 target_include_directories(murom

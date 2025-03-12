@@ -46,13 +46,75 @@ struct Vec3 {
     }
 };
 
+struct Vec2 {
+    float x;
+    float y;
+
+    Vec2() : x{0.0f}, y{0.0f} {}
+    Vec2(float x, float y) : x{x}, y{y} {}
+    Vec2(const Vec3 &other) : x{other.x}, y{other.y} {};
+};
+
+Vec2 operator-(const Vec2 &a, const Vec2 &b) {
+    return Vec2(a.x - b.x, a.y - b.y);
+}
+
+Vec2 operator+(const Vec2 &a, const Vec2 &b) {
+    return Vec2(a.x + b.x, a.y + b.y);
+}
+
+Vec2 operator*(const Vec2 &a, const float &k) {
+    return Vec2(a.x * k, a.y * k);
+}
+
+Vec3 operator+(const Vec3 &a, const Vec3 &b) {
+    return Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+Vec3 operator*(const Vec3 &a, const float &k) {
+    return Vec3(a.x * k, a.y * k, a.z * k);
+}
+
+Vec3 operator*(const float &k, const Vec3 &a) {
+    return Vec3(a.x * k, a.y * k, a.z * k);
+}
+
+float dot(const Vec2 &a, const Vec2 &b) {
+    return a.x * b.x + a.y * b.y;
+}
+
 struct Vertex {
     Vec3 pos;
     Vec3 color;
 };
 
+void barycentric(const Vec2 &p, const Vec2 &a, const Vec2 &b, const Vec2 &c, float &u, float &v, float &w) {
+    Vec2 v0 = b - a, v1 = c - a, v2 = p - a;
+    float d00 = dot(v0, v0);
+    float d01 = dot(v0, v1);
+    float d11 = dot(v1, v1);
+    float d20 = dot(v2, v0);
+    float d21 = dot(v2, v1);
+    float denom = d00 * d11 - d01 * d01;
+    v = (d11 * d20 - d01 * d21) / denom;
+    w = (d00 * d21 - d01 * d20) / denom;
+    u = 1.0f - v - w;
+    u = std::clamp(u, 0.0f, 1.0f);
+    v = std::clamp(v, 0.0f, 1.0f);
+    w = std::clamp(w, 0.0f, 1.0f);
+}
+
 void drawPixel(int x, int y, const Vertex &a, const Vertex &b, const Vertex &c) {
-    putPixel(x, y, a.color.toColor());
+    Vec2 a2d(a.pos);
+    Vec2 b2d(b.pos);
+    Vec2 c2d(c.pos);
+    Vec2 pos(((float)x + 0.5f) / (float)SCREEN_WIDTH,
+             ((float)y + 0.5f) / (float)SCREEN_HEIGHT);
+    float u, v, w;
+    barycentric(pos, a2d, b2d, c2d, u, v, w);
+
+    Vec3 col = a.color * u + b.color * v + c.color * w;
+    putPixel(x, y, col.toColor());
 }
 
 void drawTriangle(const Vertex &a, const Vertex &b, const Vertex &c) {
@@ -144,6 +206,8 @@ int main(int argc, char *argv[]) {
 
     Vertex a, b, c, d;
     a.color = Vec3(0.3, 0.8, 0.3);
+    b.color = Vec3(0.8, 0.3, 0.3);
+    c.color = Vec3(0.3, 0.8, 0.8);
     d.color = Vec3(0.8, 0.8, 0.3);
 
     double angle = 0.0;
