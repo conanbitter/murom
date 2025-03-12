@@ -221,12 +221,16 @@ void drawTriangle3(const Vertex &a, const Vertex &b, const Vertex &c, Color colo
     int S2 = Dy2 * (ymin - y2) - Dx2 * (xmin - x2);
     int S3 = Dy3 * (ymin - y3) - Dx3 * (xmin - x3);
 
+    if (Dx1 < 0 || (Dx1 == 0 && Dy1 > 0)) S1++;
+    if (Dx2 < 0 || (Dx2 == 0 && Dy2 > 0)) S2++;
+    if (Dx3 < 0 || (Dx3 == 0 && Dy3 > 0)) S3++;
+
     for (int y = ymin; y <= ymax; y++) {
         int P1 = S1;
         int P2 = S2;
         int P3 = S3;
         for (int x = xmin; x <= xmax; x++) {
-            if (P1 >= 0 && P2 >= 0 && P3 >= 0) {
+            if (P1 > 0 && P2 > 0 && P3 > 0) {
                 if (screenBuffer[y][x].b != 100) {
                     putPixel(x, y, color);
                 } else {
