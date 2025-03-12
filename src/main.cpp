@@ -39,6 +39,18 @@ struct ScreenPoint {
     ScreenPoint(int x, int y) : x{x}, y{y} {}
 };
 
+struct Vec3 {
+    float x;
+    float y;
+    float z;
+
+    Vec3() : x{0.0f}, y{0.0f}, z{0.0f} {}
+};
+
+struct Vertex {
+    Vec3 pos;
+};
+
 class ITriEdge {
    public:
     virtual int next() { return 0; }
@@ -179,9 +191,59 @@ void drawTriangle2(ScreenPoint a, ScreenPoint b, ScreenPoint c, Color color) {
             }
         }
     }
-    putPixel(a.x, a.y, Color(100, 50, 50));
-    putPixel(b.x, b.y, Color(100, 50, 50));
-    putPixel(c.x, c.y, Color(100, 50, 50));
+    // putPixel(a.x, a.y, Color(100, 50, 50));
+    // putPixel(b.x, b.y, Color(100, 50, 50));
+    // putPixel(c.x, c.y, Color(100, 50, 50));
+}
+
+void drawTriangle3(const Vertex &a, const Vertex &b, const Vertex &c, Color color) {
+    int x1 = a.pos.x * SCREEN_WIDTH;
+    int y1 = a.pos.y * SCREEN_HEIGHT;
+    int x2 = b.pos.x * SCREEN_WIDTH;
+    int y2 = b.pos.y * SCREEN_HEIGHT;
+    int x3 = c.pos.x * SCREEN_WIDTH;
+    int y3 = c.pos.y * SCREEN_HEIGHT;
+
+    int xmin = std::max(std::min({x1, x2, x3}), 0);
+    int xmax = std::min(std::max({x1, x2, x3}), SCREEN_WIDTH - 1);
+    int ymin = std::max(std::min({y1, y2, y3}), 0);
+    int ymax = std::min(std::max({y1, y2, y3}), SCREEN_HEIGHT - 1);
+
+    int Dx1 = y1 - y2;
+    int Dx2 = y2 - y3;
+    int Dx3 = y3 - y1;
+
+    int Dy1 = x1 - x2;
+    int Dy2 = x2 - x3;
+    int Dy3 = x3 - x1;
+
+    int S1 = Dy1 * (ymin - y1) - Dx1 * (xmin - x1);
+    int S2 = Dy2 * (ymin - y2) - Dx2 * (xmin - x2);
+    int S3 = Dy3 * (ymin - y3) - Dx3 * (xmin - x3);
+
+    for (int y = ymin; y <= ymax; y++) {
+        int P1 = S1;
+        int P2 = S2;
+        int P3 = S3;
+        for (int x = xmin; x <= xmax; x++) {
+            if (P1 >= 0 && P2 >= 0 && P3 >= 0) {
+                if (screenBuffer[y][x].b != 100) {
+                    putPixel(x, y, color);
+                } else {
+                    putPixel(x, y, Color(200, 50, 50));
+                }
+            }
+            P1 -= Dx1;
+            P2 -= Dx2;
+            P3 -= Dx3;
+        }
+        S1 += Dy1;
+        S2 += Dy2;
+        S3 += Dy3;
+    }
+    putPixel(x1, y1, Color(100, 50, 50));
+    putPixel(x2, y2, Color(100, 50, 50));
+    putPixel(x3, y3, Color(100, 50, 50));
 }
 
 Color bgColor = Color(92, 131, 181);
@@ -229,6 +291,8 @@ int main(int argc, char *argv[]) {
     ScreenPoint c(13, 57);
     ScreenPoint d(13, 57);
 
+    Vertex av, bv, cv, dv;
+
     double angle = 0.0;
 
     while (working) {
@@ -250,9 +314,21 @@ int main(int argc, char *argv[]) {
         c.y = 90 + sin(angle + 1.2) * 50;
         d.x = 160 + cos(angle + 4) * 100;
         d.y = 90 + sin(angle + 4) * 50;
+
+        av.pos.x = 0.5f + cosf(angle) * 0.3f;
+        av.pos.y = 0.5f + sinf(angle) * 0.3f;
+        bv.pos.x = 0.5f + cosf(angle + 3.0) * 0.3f;
+        bv.pos.y = 0.5f + sinf(angle + 3.0) * 0.3f;
+        cv.pos.x = 0.5f + cosf(angle + 1.2) * 0.3f;
+        cv.pos.y = 0.5f + sinf(angle + 1.2) * 0.3f;
+        dv.pos.x = 0.5f + cosf(angle + 4) * 0.3f;
+        dv.pos.y = 0.5f + sinf(angle + 4) * 0.3f;
+
         clearScreen();
-        drawTriangle2(a, b, c, Color(100, 200, 100));
-        drawTriangle2(d, b, a, Color(200, 200, 100));
+        // drawTriangle2(a, b, c, Color(100, 200, 100));
+        //  drawTriangle2(d, b, a, Color(200, 200, 100));
+        drawTriangle3(av, bv, cv, Color(100, 200, 100));
+        drawTriangle3(dv, bv, av, Color(200, 200, 100));
 
         SDL_UpdateTexture(screen, NULL, screenBuffer, SCREEN_WIDTH * sizeof(Color));
         SDL_RenderCopy(renderer, screen, NULL, &screen_rect);
