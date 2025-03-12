@@ -67,6 +67,10 @@ Vec2 operator*(const Vec2 &a, const float &k) {
     return Vec2(a.x * k, a.y * k);
 }
 
+Vec2 operator*(const float &k, const Vec2 &a) {
+    return Vec2(a.x * k, a.y * k);
+}
+
 Vec3 operator+(const Vec3 &a, const Vec3 &b) {
     return Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
@@ -86,6 +90,7 @@ float dot(const Vec2 &a, const Vec2 &b) {
 struct Vertex {
     Vec3 pos;
     Vec3 color;
+    Vec2 uv;
 };
 
 void barycentric(const Vec2 &p, const Vec2 &a, const Vec2 &b, const Vec2 &c, float &u, float &v, float &w) {
@@ -113,8 +118,9 @@ void drawPixel(int x, int y, const Vertex &a, const Vertex &b, const Vertex &c) 
     float u, v, w;
     barycentric(pos, a2d, b2d, c2d, u, v, w);
 
-    Vec3 col = a.color * u + b.color * v + c.color * w;
-    putPixel(x, y, col.toColor());
+    Vec3 color = a.color * u + b.color * v + c.color * w;
+    Vec2 uv = a.uv * u + b.uv * v + c.uv * w;
+    putPixel(x, y, Color(255 * uv.x, 255 * uv.y, 0));  // col.toColor()
 }
 
 void drawTriangle(const Vertex &a, const Vertex &b, const Vertex &c) {
@@ -209,6 +215,10 @@ int main(int argc, char *argv[]) {
     b.color = Vec3(0.8, 0.3, 0.3);
     c.color = Vec3(0.3, 0.8, 0.8);
     d.color = Vec3(0.8, 0.8, 0.3);
+    a.uv = Vec2(0.0, 1.0);
+    b.uv = Vec2(1.0, 0.0);
+    c.uv = Vec2(0.0, 0.0);
+    d.uv = Vec2(1.0, 1.0);
 
     double angle = 0.0;
 
