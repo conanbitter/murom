@@ -3,17 +3,10 @@
 #include <iostream>
 #include <algorithm>
 
-using std::cout;
-using std::endl;
+#include "app.hpp"
 
-const int SCREEN_WIDTH = 320;   // 640
-const int SCREEN_HEIGHT = 180;  // 360
-const int SCREEN_SCALE = 4;
-
-SDL_Window *window;
-SDL_Renderer *renderer;
-SDL_Texture *screen;
-SDL_Rect screen_rect = {0, 0, SCREEN_WIDTH *SCREEN_SCALE, SCREEN_HEIGHT *SCREEN_SCALE};
+using mrm::SCREEN_HEIGHT;
+using mrm::SCREEN_WIDTH;
 
 struct alignas(uint32_t) Color {
     uint8_t b;
@@ -180,57 +173,20 @@ void clearScreen() {
     }
 }
 
-int main(int argc, char *argv[]) {
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    window = SDL_CreateWindow(
-        "Murom",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        SCREEN_WIDTH * SCREEN_SCALE,
-        SCREEN_HEIGHT * SCREEN_SCALE,
-        SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    SDL_RendererInfo info;
-    SDL_GetRendererInfo(renderer, &info);
-    cout << "Renderer name: " << info.name << endl;
-    cout << "Texture formats: " << endl;
-    for (Uint32 i = 0; i < info.num_texture_formats; i++) {
-        cout << SDL_GetPixelFormatName(info.texture_formats[i]) << endl;
-    }
-    Uint32 format;
-    SDL_QueryTexture(screen, &format, NULL, NULL, NULL);
-    cout << "Screen texture format: " << SDL_GetPixelFormatName(format) << endl;
-    if (format != SDL_PIXELFORMAT_ARGB8888) {
-        cout << "Error in texture format" << endl;
+class TestScene : public mrm::Scene {
+   public:
+    void load() override {
+        a.color = Vec3(0.3, 0.8, 0.3);
+        b.color = Vec3(0.8, 0.3, 0.3);
+        c.color = Vec3(0.3, 0.8, 0.8);
+        d.color = Vec3(0.8, 0.8, 0.3);
+        a.uv = Vec2(0.0, 1.0);
+        b.uv = Vec2(1.0, 0.0);
+        c.uv = Vec2(0.0, 0.0);
+        d.uv = Vec2(1.0, 1.0);
     }
 
-    SDL_Event event;
-    bool working = true;
-
-    Vertex a, b, c, d;
-    a.color = Vec3(0.3, 0.8, 0.3);
-    b.color = Vec3(0.8, 0.3, 0.3);
-    c.color = Vec3(0.3, 0.8, 0.8);
-    d.color = Vec3(0.8, 0.8, 0.3);
-    a.uv = Vec2(0.0, 1.0);
-    b.uv = Vec2(1.0, 0.0);
-    c.uv = Vec2(0.0, 0.0);
-    d.uv = Vec2(1.0, 1.0);
-
-    double angle = 0.0;
-
-    while (working) {
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    working = 0;
-                    break;
-            }
-        }
-
+    void update(float delta) override {
         angle += 0.002;
 
         a.pos.x = 0.5f + cosf(angle) * 0.3f;
@@ -241,19 +197,24 @@ int main(int argc, char *argv[]) {
         c.pos.y = 0.5f + sinf(angle + 1.2) * 0.3f;
         d.pos.x = 0.5f + cosf(angle + 4) * 0.3f;
         d.pos.y = 0.5f + sinf(angle + 4) * 0.3f;
+    }
 
+    void draw(float alpha) override {
         clearScreen();
         drawTriangle(a, b, c);
         drawTriangle(d, b, a);
-
-        SDL_UpdateTexture(screen, NULL, screenBuffer, SCREEN_WIDTH * sizeof(Color));
-        SDL_RenderCopy(renderer, screen, NULL, &screen_rect);
-        SDL_RenderPresent(renderer);
-
-        SDL_Delay(5);
     }
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+
+   private:
+    Vertex a, b, c, d;
+    double angle = 0.0;
+};
+
+int main(int argc, char *argv[]) {
+    TestScene scene;
+    mrm::App &app = mrm::App::getInstance();
+    app.init("Murom", 4);
+    app.setScene(&scene);
+    app.run();
     return 0;
 }

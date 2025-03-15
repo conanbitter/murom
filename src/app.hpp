@@ -3,6 +3,9 @@
 
 namespace mrm {
 
+const int SCREEN_WIDTH = 320;
+const int SCREEN_HEIGHT = 180;
+
 class Scene {
    public:
     Scene() : loaded{false} {}
