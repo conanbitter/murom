@@ -34,10 +34,11 @@ class App {
     SDL_Texture* m_screen;
     SDL_Rect m_screen_rect;
     Scene* m_currentScene;
+    Scene* m_nextScene;
 
     static Scene dummyScene;
 
-    App() : m_initComplete{false}, m_currentScene{&dummyScene} {};
+    App() : m_initComplete{false}, m_currentScene{&dummyScene}, m_nextScene{nullptr} {};
     App(const App&) = delete;
     App& operator=(const App&) = delete;
     ~App();
