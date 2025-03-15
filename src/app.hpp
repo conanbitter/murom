@@ -26,17 +26,18 @@ class App {
     void setScene(Scene* newScene);
 
    private:
-    bool isInitComplete;
-    bool isRunning;
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Texture* screen;
-    SDL_Rect screen_rect;
-    Scene* currentScene;
+    bool m_initComplete;
+    bool m_running;
+    int m_scale;
+    SDL_Window* m_window;
+    SDL_Renderer* m_renderer;
+    SDL_Texture* m_screen;
+    SDL_Rect m_screen_rect;
+    Scene* m_currentScene;
 
     static Scene dummyScene;
 
-    App() : isInitComplete{false}, currentScene{&dummyScene} {};
+    App() : m_initComplete{false}, m_currentScene{&dummyScene} {};
     App(const App&) = delete;
     App& operator=(const App&) = delete;
     ~App();
